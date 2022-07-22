@@ -17,7 +17,6 @@ users_table = 'users_table'
 books_table = 'books_table'
 
 
-
 # Fungsi Koneksi ke Server
 def create_server_connection(host_name, user_name, user_password):
     connection = None
