@@ -4,7 +4,9 @@
 This is a fourth assignment of Python class from data science course at [Pacmann](https://pacmann.io/). It is arranged to illustrate the functionality of python with MySQL database. LMS stands for Library Management Project, this app is designed to manage the administration of a suppose to be a library at Pacmann. Basic functionality covers adding new books into the collection, searching for books, adding new users and viewing books status.
 
 ## Requirements
-The required package is listed in ```requirements.txt```. Along with the general practice of setting up local environemnt, those packages need to be installed prior to the utilization of this app. 
+The required package is listed in ```requirements.txt```. Along with the general best practice of setting up local environemnt, those packages need to be installed prior to the utilization of this app. 
+
+The virtual environment or ```venv``` can be set up within your local working directory using  ```python -m venv LMS-Project``` command. This command will create a new directory called ```LMS-Project``` that will contain the virtual environment. Afterwards it can be activated by ```./Scripts/activate```. 
 
 
 ```
