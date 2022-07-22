@@ -1,12 +1,10 @@
 # LMS-Project
 
 ## Introduction
-This is a fourth assignment of Python class from data science course at [Pacmann](https://pacmann.io/). It is arranged to illustrate the functionality of python with MySQL database. LMS stands for Library Management Project, this app is designed to manage the administration of a suppose to be a library at Pacmann. Basic functionality covers adding new books into the collection, searching for books, adding new users and viewing books status.
+This is a fourth assignment of Python class from data science course at [Pacmann](https://pacmann.io/). It is arranged to illustrate the functionality of python with MySQL database. LMS stands for Library Management Project, this app is designed to manage the administration of a suppose to be a library at Pacmann. Basic functionality covers adding new books into the collection, searching for books, adding new users and viewing books status, etc.
 
 ## Requirements
-The required package is listed in ```requirements.txt```. Along with the general best practice of setting up local environemnt, those packages need to be installed prior to the utilization of this app. 
-
-The virtual environment or ```venv``` can be set up within your local working directory using  ```python -m venv LMS-Project``` command. This command will create a new directory called ```LMS-Project``` that will contain the virtual environment. Afterwards it can be activated by ```./Scripts/activate```. 
+The required package is listed in ```requirements.txt```. Along with the general best practice of setting up local environment, those packages need to be installed prior to the utilization of this app. The virtual environment or ```venv``` can be set up within your local working directory using  ```python -m venv LMS-Project``` command. The virtual environment will be created and contained within a directory called ```LMS-Project```. Afterwards it can be activated via ```./Scripts/activate```. ```pip install``` command can be used to install the required packages. ```mysql-connector-python``` is used to handle the connection and operation of the MySQL database from python, whereas the creation of the UI aspect is managed using ```streamlit``` a powerful framework to create machine learning and data science app. you can learn more about it at  [Streamlit](https://streamlit.io/). A Streamlit extension called ```streamlit-aggrid``` helps to create an interactive table. in this app, it is used to create a table book where user can select a book to borrow. Finally ```pandas``` is used to handle the tables coming out of the MySQL database.
 
 
 ```
@@ -25,6 +23,8 @@ import lms_python_functions as lpf
 ```
 
 ## How it works
+The app is divided into three section, which are
+
 ### Admin Section
 #### Register New Book
 #### Book Borrow/Return Request
