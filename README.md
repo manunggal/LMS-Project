@@ -32,9 +32,36 @@ The app is divided into three section, which are:
   as a guest, one can only browse the collection or search for a book 
 
 ### Admin Section
+The sidebar is where user log the information in accordance with their respective role, it accepts two inputs which are `username` and `password`.
 ![Admin Login](https://github.com/manunggal/LMS-Project/blob/master/readme%20pics/admin_login.jpg)
-
+In general the user authentification aspect of this app is not part of the assignment, hence in the current version the authentification of admin is simplified as:
+```
+if st.sidebar.checkbox("Login"):
+            # Admin Section
+            if username == "admin":
+                # supposed to use admin_table to check login info
+                if password == "1234":
+                    # supposed to retrieve hashed password from admin_table
+                    st.success("Logged as Admin")
+                    # Open admin home page
+```
+if `username` input is 'admin' and `password` input is '1234', the app will present the admin page.
+admin picture. The following code delivers the admin page
+```
+# Open admin home page
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "Register New Book", 
+    "Books Borrow/Return Request",
+    "Books Collection", 
+    "Add New user",
+    "Users List"])
+```
+ It consists of five tabs, each tab will open a new page corresponding to the respective tab name.
+ 
 #### Register New Book
+In this tab, the admin can add new book to the collection. the following code
+
+gambar lagi
 #### Book Borrow/Return Request
 #### Books Collection
 #### Add New User
