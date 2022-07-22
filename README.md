@@ -23,9 +23,17 @@ import lms_python_functions as lpf
 ```
 
 ## How it works
-The app is divided into three section, which are
+The app is divided into three section, which are:
+- Admin Section
+  As an administrator, user can add new book, add new user, browse collection in a more detailed fashion. an admin also serve to approve book borrowing request and confiriming returning books.
+- User Section
+  a user or a library member can browse collection, search for a book with a keyword for book title, and editing his/her profile
+- Guest Section
+  as a guest, one can only browse the collection or search for a book 
 
 ### Admin Section
+!(Admin Login)[https://github.com/manunggal/LMS-Project/blob/master/readme%20pics/admin_login.jpg]
+
 #### Register New Book
 #### Book Borrow/Return Request
 #### Books Collection
