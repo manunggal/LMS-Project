@@ -32,7 +32,7 @@ The app is divided into three section, which are:
   as a guest, one can only browse the collection or search for a book 
 
 ### Admin Section
-!(Admin Login)[https://github.com/manunggal/LMS-Project/blob/master/readme%20pics/admin_login.jpg]
+![Admin Login](https://github.com/manunggal/LMS-Project/blob/master/readme%20pics/admin_login.jpg)
 
 #### Register New Book
 #### Book Borrow/Return Request
