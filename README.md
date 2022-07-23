@@ -59,7 +59,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
  It consists of five tabs, each tab will open a new page corresponding to the respective tab name.
  
 #### Register New Book
-In this tab, the admin can add new book to the collection. the following code
+In this tab, the admin can add new book to the collection. the following code from `home.py`
 
 gambar lagi
 #### Book Borrow/Return Request
