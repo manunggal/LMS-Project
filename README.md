@@ -121,12 +121,15 @@ gambar st.info borrow request
 `
 
 When there are such requests, a function:
+
 `# present borrow book request table
 presenting_books_to_be_borrowed_for_admin_string = (
     f'SELECT * FROM {books_table} '
     f'WHERE book_status = \'{books_status[2]}\' '
 )`
+
 from `lms_sql_functions.py` will retrieve the table from database and present it to the admin, where function `detail_book_data_formatting` from `lms_python_functions.py` will format the table's column names. Meanwhile function `df_to_aggrid` from `lms_python_functions.py` will convert `pandas` `dataframe` to `Aggrid` `dataframe` in order to create interactive table where the admin can select which request to be approved using a checkbox.
+The handling of this request is executed after admin click the `approve` button from `if st.button("Approve"):` code where `book title` is captured from the selected row and used as a query is sent to the database using 
 The same process will also happens for the borrow request tab. 
 
 
