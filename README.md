@@ -57,30 +57,11 @@ In this tab, the admin can add new book to the collection. the following code fr
                             lsf.insert_new_book(new_book_title, new_book_category, new_book_stock, lsf.db_connection)
 
                             st.success("Book(s) added in Collection")`
-<<<<<<< HEAD
 
 will generate the following tab
 ![register new book](https://github.com/manunggal/LMS-Project/blob/1daccf9b0a8e18dc77ca9f445621ab599ec3f6c9/readme%20pics/register_new_book_admin.jpg)
 
 The input of `new_book_title`, etc will be executed as MySQL query using `lsf.insert_new_book` function when the `st.button("Add Book(s) in Library")` is clicked. Within this block of code, the number of books to be added will be based  on `new_book_stock` input. For each new book, a `book_id` number is generated automatically using auto increment feature that was set-up during MySQL table creation.
-=======
-
-will generate the following tab
-![register new book](https://github.com/manunggal/LMS-Project/blob/1daccf9b0a8e18dc77ca9f445621ab599ec3f6c9/readme%20pics/register_new_book_admin.jpg)
-
-The input of `new_book_title`, etc will be executed as MySQL query using code 
-`# function to insert new book to database by admin
-def insert_new_book(new_book_title, new_book_category, new_book_stock, db_connection):
-    sql_string = (
-        f'INSERT INTO {books_table} (book_title, book_category, book_status) '
-        f'VALUES (\"{new_book_title}\",\"{new_book_category}\", \"available\")'
-    )
-
-    for i in range(0, int(new_book_stock)):
-        execute_query(db_connection, sql_string)`
-        
-from` lms_sql_functions.py` when the `st.button("Add Book(s) in Library")` is clicked. Within this block of code, the number of books to be added will be based  on `new_book_stock` input. For each new book, a `book_id` number is generated automatically using auto increment feature that was set-up during MySQL table creation.
->>>>>>> d0363a5dde155070ee745810c5b8c1ee1c5df1a7
 
 #### Book Borrow/Return Request
 Both books borrow or return tab will display the following message when there are no such request from library users.
