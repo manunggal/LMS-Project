@@ -4,3 +4,17 @@
 /pyvenv.cfg
 /Scripts
 /testing_ground.ipynb
+/etc
+/share
+/__pycache__
+/dummy.py
+/sandbox.py
+/test_function.ipynb
+/test_login.py
+/user_authentification.py
+/aggrid_intro.py
+/ipynb_checkpoints
+
+.ipynb_checkpoints/test_function-checkpoint.ipynb
+.gitignore
+mysql_manager.py

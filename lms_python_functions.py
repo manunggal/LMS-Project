@@ -74,7 +74,7 @@ def hash_password(password):
     return hashlib.sha3_256(password.encode()).hexdigest()
  
 def check_password(user, hashed_password):
-    saved_password = mysql_manager.read_query(
+    saved_password = lsf.read_query(
         lsf.db_connection, 
         lsf.select_password_from_table())
     return saved_password == hashed_password

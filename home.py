@@ -1,17 +1,19 @@
+# For UI handling
 import streamlit as st
-import mysql.connector 
-from mysql.connector import Error
-import pandas as pd
 from st_aggrid import AgGrid, GridUpdateMode
 from st_aggrid.grid_options_builder import GridOptionsBuilder
-
+# Database handling
+import mysql.connector 
+from mysql.connector import Error
+# Table handling
+import pandas as pd
+# local functions
 import lms_sql_functions as lsf
 import lms_python_functions as lpf
 
 
-
-
-# from streamlit import caching
+# Set wide page type
+st.set_page_config(page_title = "Home", layout="wide")
 
 # koneksi ke server
 server_connection = lsf.create_server_connection(lsf.host, lsf.user, lsf.pw)
@@ -25,7 +27,7 @@ lsf.execute_query(lsf.db_connection, lsf.creating_admin_table_string) # create a
 lsf.execute_query(lsf.db_connection, lsf.creating_users_table_string) # create user table if not exists
 lsf.execute_query(lsf.db_connection, lsf.creating_books_table_string) # create book table if not exists
 
-st.set_page_config(page_title = "Home")
+
 
 def main():
     """
@@ -47,7 +49,7 @@ def main():
             if username == "admin":
                 # Use admin table to check login info
                 if password == "1234":
-                    # retrieve hashed password from admin table
+                    # supposed to retrieve hashed password from admin table
                     st.success("Logged as Admin")
                     # Open admin home page
                     tab1, tab2, tab3, tab4, tab5 = st.tabs([
@@ -82,7 +84,6 @@ def main():
                                         lsf.db_connection, lsf.presenting_books_to_be_borrowed_for_admin_string
                                     )
                                 )
-                                st.write(book_requested_to_borrow_admin_view)
                                 book_requested_to_borrow_admin_view_aggrid = lpf.df_to_aggrid(pd.DataFrame(book_requested_to_borrow_admin_view))
                         
 
@@ -106,7 +107,6 @@ def main():
                                         lsf.db_connection, lsf.presenting_books_to_be_returned_for_admin_string
                                     )
                                 )
-                                st.write(book_requested_to_return_admin_view)
                                 book_requested_to_return_admin_view_aggrid = lpf.df_to_aggrid(pd.DataFrame(book_requested_to_return_admin_view))
 
 
