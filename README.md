@@ -59,10 +59,36 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
  It consists of five tabs, each tab will open a new page corresponding to the respective tab name.
  
 #### Register New Book
-In this tab, the admin can add new book to the collection. the following code from `home.py`
+In this tab, the admin can add new book to the collection. the following code from `home.py` 
+`with tab1: # Register New Book
+                        new_book_title = st.text_input("Book Title")
+                        new_book_category = st.text_input("Book Category")
+                        new_book_stock = st.text_input("Numbers of Books")
+
+                        if st.button("Add Book(s) in Library"):
+                            lsf.insert_new_book(new_book_title, new_book_category, new_book_stock, lsf.db_connection)
+
+                            st.success("Book(s) added in Collection")`
+will generate the following tab
 
 gambar lagi
+
+The input of `new_book_title`, etc will be executed as MySQL query using code 
+`# function to insert new book to database by admin
+def insert_new_book(new_book_title, new_book_category, new_book_stock, db_connection):
+    sql_string = (
+        f'INSERT INTO {books_table} (book_title, book_category, book_status) '
+        f'VALUES (\"{new_book_title}\",\"{new_book_category}\", \"available\")'
+    )
+
+    for i in range(0, int(new_book_stock)):
+        execute_query(db_connection, sql_string)`
+        
+from` lms_sql_functions.py` when the `st.button("Add Book(s) in Library")` is clicked. Within this block of code, the number of books to be added will be based  on `new_book_stock` input. For each new book, a `book_id` number is generated automatically using auto increment feature that was set-up during MySQL table creation.
+
 #### Book Borrow/Return Request
+
+
 #### Books Collection
 #### Add New User
 #### Users List
