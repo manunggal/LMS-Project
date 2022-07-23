@@ -87,6 +87,49 @@ def insert_new_book(new_book_title, new_book_category, new_book_stock, db_connec
 from` lms_sql_functions.py` when the `st.button("Add Book(s) in Library")` is clicked. Within this block of code, the number of books to be added will be based  on `new_book_stock` input. For each new book, a `book_id` number is generated automatically using auto increment feature that was set-up during MySQL table creation.
 
 #### Book Borrow/Return Request
+Both books borrow or return tab will display the following message when there are no such request from library users.
+gambar st.info borrow request
+
+`with tab2: # Book Borrow/Return Request
+                        tab2_1, tab2_2 = st.tabs([
+                            "Request to Borrow",
+                            "Request to Return"
+                        ])
+                        
+                        with tab2_1:
+                            try:
+
+                                book_requested_to_borrow_admin_view = lpf.detail_book_data_formatting(
+                                    lsf.read_query_as_pd(
+                                        lsf.db_connection, lsf.presenting_books_to_be_borrowed_for_admin_string
+                                    )
+                                )
+                                book_requested_to_borrow_admin_view_aggrid = lpf.df_to_aggrid(pd.DataFrame(book_requested_to_borrow_admin_view))
+                        
+
+                                if st.button("Approve"):
+                                    book_approve_to_be_borrowed = lpf.select_book_to_borrow_return(book_requested_to_borrow_admin_view_aggrid, column_name='Book ID')
+                                    st.write(book_approve_to_be_borrowed[0])
+                                    lsf.execute_query(
+                                        lsf.db_connection,
+                                        lsf.approve_to_borrow(book_approve_to_be_borrowed[0])
+                                    )
+                                    st.success("User's request approved")
+                            
+                            except:
+                                st.info("No borrowing request from users")
+`
+
+When there are such requests, a function:
+`# present borrow book request table
+presenting_books_to_be_borrowed_for_admin_string = (
+    f'SELECT * FROM {books_table} '
+    f'WHERE book_status = \'{books_status[2]}\' '
+)`
+from `lms_sql_functions.py` will retrieve the table from database and present it to the admin, where function `detail_book_data_formatting` from `lms_python_functions.py` will format the table's column names. Meanwhile function `df_to_aggrid` from `lms_python_functions.py` will convert `pandas` `dataframe` to `Aggrid` `dataframe` in order to create interactive table where the admin can select which request to be approved using a checkbox.
+The same process will also happens for the borrow request tab. 
+
+
 
 
 #### Books Collection
