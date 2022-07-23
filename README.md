@@ -70,9 +70,9 @@ In this tab, the admin can add new book to the collection. the following code fr
                             lsf.insert_new_book(new_book_title, new_book_category, new_book_stock, lsf.db_connection)
 
                             st.success("Book(s) added in Collection")`
-will generate the following tab
 
-gambar lagi
+will generate the following tab
+![register new book](https://github.com/manunggal/LMS-Project/blob/1daccf9b0a8e18dc77ca9f445621ab599ec3f6c9/readme%20pics/register_new_book_admin.jpg)
 
 The input of `new_book_title`, etc will be executed as MySQL query using code 
 `# function to insert new book to database by admin
