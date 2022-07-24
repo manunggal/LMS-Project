@@ -11,23 +11,15 @@ import pandas as pd
 import lms_sql_functions as lsf
 import lms_python_functions as lpf
 
-# Set wide page type
-# st.set_page_config(page_title = "Home", layout="wide")
 
 
-# create server connection
 
+# create container for notification of database setup (create connection, create database/table if not exists)
 placeholder = st.empty()
 with placeholder.container():
-    server_connection = lsf.create_server_connection(lsf.host, lsf.user, lsf.pw)
-    # create database if not exists
-    lsf.execute_query(server_connection, lsf.creating_database_string, lsf.success_create_database_string) # create database if not exists
-
-    # create database and table if not exist
-    lsf.execute_query(lsf.db_connection, lsf.creating_admin_table_string, lsf.success_create_database_string) # create admin table  if not exists
-    lsf.execute_query(lsf.db_connection, lsf.creating_users_table_string, lsf.success_create_database_string) # create user table if not exists
-    lsf.execute_query(lsf.db_connection, lsf.creating_books_table_string, lsf.success_create_database_string) # create book table if not exists
-placeholder.empty()
+    # setup database: first setup server connection, create database, create database connection, create users and books table if not exists 
+    db_connection = lsf.initial_setup(lsf.host, lsf.user, lsf.pw, lsf.db)
+placeholder.empty() #clear notification
 
 
 
@@ -72,7 +64,7 @@ def main():
                         new_book_stock = st.text_input("Numbers of Books")
 
                         if st.button("Add Book(s) in Library"): # update books_table with new book
-                            lsf.insert_new_book(new_book_title, new_book_category, new_book_stock, lsf.db_connection)
+                            lsf.insert_new_book(new_book_title, new_book_category, new_book_stock, db_connection)
                             st.success("Book(s) added in Collection")
                         
 
@@ -84,52 +76,66 @@ def main():
                         ])
                         
                         with tab2_1: # for approving books borrowing request
-                            try:
-                                # retrieve table from books_table, where book_status = 'requested to be borrowed'
-                                book_requested_to_borrow_admin_view = lpf.detail_book_data_formatting(
-                                    lsf.read_query_as_pd(
-                                        lsf.db_connection, lsf.presenting_books_to_be_borrowed_for_admin_string
-                                    )
-                                )
-                                # presents the result as AgGrid table in order to enable checkbox selection 
-                                book_requested_to_borrow_admin_view_aggrid = lpf.df_to_aggrid(pd.DataFrame(book_requested_to_borrow_admin_view))
-                        
+                            
+                            # check if books table is empty 
+                            if lsf.check_table_empty(db_connection, lsf.books_table) == 0:
+                                st.info('No books collection yet')
 
-                                if st.button("Approve"):
-                                    # catch selected row, take book_id, search in book_table, change book_status to 'borrowed'
-                                    book_approve_to_be_borrowed = lpf.select_book_to_borrow_return(book_requested_to_borrow_admin_view_aggrid, column_name='Book ID')
-                                    lsf.execute_query(
-                                        lsf.db_connection,
-                                        lsf.approve_to_borrow(book_approve_to_be_borrowed[0]),
-                                        lsf.success_user_request_approved_string
+                            else:
+
+                                try:
+                                    # retrieve table from books_table, where book_status = 'requested to be borrowed'
+                                    book_requested_to_borrow_admin_view = lpf.detail_book_data_formatting(
+                                        lsf.read_query_as_pd(
+                                            db_connection, lsf.presenting_books_to_be_borrowed_for_admin_string
+                                        )
                                     )
-                                                            
-                            except:
-                                st.info("No borrowing request from users")
+                                    # presents the result as AgGrid table in order to enable checkbox selection 
+                                    book_requested_to_borrow_admin_view_aggrid = lpf.df_to_aggrid(pd.DataFrame(book_requested_to_borrow_admin_view))
+                            
+
+                                    if st.button("Approve"):
+                                        # catch selected row, take book_id, search in book_table, change book_status to 'borrowed'
+                                        book_approve_to_be_borrowed = lpf.select_book_to_borrow_return(book_requested_to_borrow_admin_view_aggrid, column_name='Book ID')
+                                        lsf.execute_query(
+                                            db_connection,
+                                            lsf.approve_to_borrow(book_approve_to_be_borrowed[0]),
+                                            lsf.success_user_request_approved_string
+                                        )
+                                                                
+                                except:
+                                    st.info("No borrowing request from users")
 
                         with tab2_2: # for confirming book return request
-                            try:
-                                # retrieve table from books_table, where book_status = 'to be approved for return'
-                                book_requested_to_return_admin_view = lpf.detail_book_data_formatting(
-                                    lsf.read_query_as_pd(
-                                        lsf.db_connection, lsf.presenting_books_to_be_returned_for_admin_string
+
+                            # check if books table is empty 
+                            if lsf.check_table_empty(db_connection, lsf.books_table) == 0:
+                                st.info('No books collection yet')
+
+                            else:
+
+                                try:
+                                    # retrieve table from books_table, where book_status = 'to be approved for return'
+                                    book_requested_to_return_admin_view = lpf.detail_book_data_formatting(
+                                        lsf.read_query_as_pd(
+                                            db_connection, lsf.presenting_books_to_be_returned_for_admin_string
+                                        )
                                     )
-                                )
-                                # presents the result as AgGrid table in order to enable checkbox selection 
-                                book_requested_to_return_admin_view_aggrid = lpf.df_to_aggrid(pd.DataFrame(book_requested_to_return_admin_view))
+                                    # presents the result as AgGrid table in order to enable checkbox selection 
+                                    book_requested_to_return_admin_view_aggrid = lpf.df_to_aggrid(pd.DataFrame(book_requested_to_return_admin_view))
 
 
-                                if st.button("Approve"):
-                                    # catch selected row, take book_id, search in book_table, change book_status to 'available'
-                                    book_approve_to_be_returned = lpf.select_book_to_borrow_return(book_requested_to_return_admin_view_aggrid, column_name='Book ID')
-                                    lsf.execute_query(
-                                        lsf.db_connection,
-                                        lsf.approve_to_return(book_approve_to_be_returned[0]),
-                                        lsf.success_user_request_approved_string
-                                    )
+                                    if st.button("Approve"):
+                                        # catch selected row, take book_id, search in book_table, change book_status to 'available'
+                                        book_approve_to_be_returned = lpf.select_book_to_borrow_return(book_requested_to_return_admin_view_aggrid, column_name='Book ID')
+                                        lsf.execute_query(
+                                            db_connection,
+                                            lsf.approve_to_return(book_approve_to_be_returned[0]),
+                                            lsf.success_user_request_approved_string
+                                        )
 
-                            except:
-                                st.info("No returning request from users")
+                                except:
+                                    st.info("No returning request from users")
 
 
                     with tab3: # Shows Books Collection
@@ -139,38 +145,49 @@ def main():
                             "Books Details Table"
                         ])
 
-                        with tab3_1: 
-                            # present book_table using SUM MySQL function to count numbers of available book, borrowed, etc.
-                            book_data_summary_view = lpf.book_data_admin_summary_view_formatting(
-                            lsf.read_query_as_pd(
-                                lsf.db_connection, lsf.presenting_books_table_for_admin_summary_string
-                            )
-                        )
-                            st.dataframe(book_data_summary_view)
+                        with tab3_1:  
+                            # check if books table is empty 
+                            if lsf.check_table_empty(db_connection, lsf.books_table) == 0:
+                                st.info('No books collection yet')
+
+                            else: 
+                                                         
+                                # present book_table using SUM MySQL function to count numbers of available book, borrowed, etc.
+                                book_data_summary_view = lpf.book_data_admin_summary_view_formatting(
+                                    lsf.read_query_as_pd(
+                                        db_connection, lsf.presenting_books_table_for_admin_summary_string
+                                    )
+                                )
+                                st.dataframe(book_data_summary_view)
                         
                         with tab3_2:
-                            # create search_keyword variable 
-                            admin_search_keyword = st.text_input("Search Book")
-
-                            if st.button('Search Book'):
-                                # catch search_keyword, retrieve book_table where book_title like %search_keyword%  
-                                detail_book_data = lpf.detail_book_data_formatting(
-                                    lsf.read_query_as_pd(
-                                        lsf.db_connection, lsf.search_book_admin(admin_search_keyword)
-                                    )
-                                )
-                                
-                                st.dataframe(detail_book_data)
+                            # check if books table is empty
+                            if lsf.check_table_empty(db_connection, lsf.books_table) == 0:
+                                st.info('No books collection yet')
                             
-                            else:
-                                # present detail book_table
-                                detail_book_data = lpf.detail_book_data_formatting(
-                                    lsf.read_query_as_pd(
-                                        lsf.db_connection, lsf.presenting_detail_books_table_string
+                            else:                          
+                                # create search_keyword variable 
+                                admin_search_keyword = st.text_input("Search Book")
+
+                                if st.button('Search Book'):
+                                    # catch search_keyword, retrieve book_table where book_title like %search_keyword%  
+                                    detail_book_data = lpf.detail_book_data_formatting(
+                                        lsf.read_query_as_pd(
+                                            db_connection, lsf.search_book_admin(admin_search_keyword)
+                                        )
                                     )
-                                )
+                                    
+                                    st.dataframe(detail_book_data)
                                 
-                                st.dataframe(detail_book_data)
+                                else:
+                                    # present detail book_table
+                                    detail_book_data = lpf.detail_book_data_formatting(
+                                        lsf.read_query_as_pd(
+                                            db_connection, lsf.presenting_detail_books_table_string
+                                        )
+                                    )
+                                    
+                                    st.dataframe(detail_book_data)
                     
                     with tab4: # Add new user 
                         # create new user variables
@@ -183,7 +200,7 @@ def main():
                         if st.button("Add new user"):
                             # compare if username already exists in the table
                             check_user_name_from_users_table = lsf.read_query_as_pd(
-                                lsf.db_connection, lsf.check_user_name(new_user_by_admin)    
+                                db_connection, lsf.check_user_name(new_user_by_admin)    
                             )
                             # if username does not exists
                             if check_user_name_from_users_table.empty and new_user_by_admin != 'admin':
@@ -192,7 +209,7 @@ def main():
                                 if len(new_password_by_admin) and len(new_user_dob_by_admin) > 0:
                                     # update users_table with new user
                                     lsf.execute_query(
-                                        lsf.db_connection,
+                                        db_connection,
                                         lsf.inserting_new_user_string(
                                             new_user_by_admin,
                                             new_user_dob_by_admin,
@@ -211,27 +228,34 @@ def main():
 
                         
                     with tab5: # Shows Library user List
-                        search_user_keyword = st.text_input("Search User")
-                        
-                        if st.button('Search User'): # catch user keyword, search users_table where user_name like keyword 
-                            st.info('search user based on username')
-                        
-                            detail_user_data = lpf.user_data_formatting(
-                                lsf.read_query_as_pd(
-                                    lsf.db_connection, lsf.search_for_user_admin(search_user_keyword)
-                                )
-                            )
-                            st.dataframe(detail_user_data) 
 
+                        # check if books table is empty 
+                        if lsf.check_table_empty(db_connection, lsf.users_table) == 0:
+                            st.info('No library users yet')
+                            
                         else:
-                            # present user table
-                            detail_user_data = lpf.user_data_formatting(
-                                lsf.read_query_as_pd(
-                                    lsf.db_connection, lsf.presenting_detail_users_table_string
-                                )
-                            )
 
-                            st.dataframe(detail_user_data) 
+                            search_user_keyword = st.text_input("Search User")
+                            
+                            if st.button('Search User'): # catch user keyword, search users_table where user_name like keyword 
+                                st.info('search user based on username')
+                            
+                                detail_user_data = lpf.user_data_formatting(
+                                    lsf.read_query_as_pd(
+                                        db_connection, lsf.search_for_user_admin(search_user_keyword)
+                                    )
+                                )
+                                st.dataframe(detail_user_data) 
+
+                            else:
+                                # present user table
+                                detail_user_data = lpf.user_data_formatting(
+                                    lsf.read_query_as_pd(
+                                        db_connection, lsf.presenting_detail_users_table_string
+                                    )
+                                )
+
+                                st.dataframe(detail_user_data) 
                         
 
                 else:
@@ -241,13 +265,13 @@ def main():
             else: # use user table
                 # check if username exist
                 check_user_name_from_users_table = lsf.read_query_as_pd(
-                    lsf.db_connection, lsf.check_user_name(username)    
+                    db_connection, lsf.check_user_name(username)    
                 )
                 
                 if not check_user_name_from_users_table.empty: # if query return empty, check password
 
                     # retrieve hashed password from user table
-                    saved_password_from_db = lsf.read_query_as_pd(lsf.db_connection, lsf.select_password_from_table(username))
+                    saved_password_from_db = lsf.read_query_as_pd(db_connection, lsf.select_password_from_table(username))
                     hashed_password_input = lpf.hash_password(password)
                                     
                     if saved_password_from_db.iloc[0][0] == hashed_password_input:  # check if input password for user = password in table
@@ -260,53 +284,60 @@ def main():
                         ])
 
                         with tab1:
-                            # catch search keyword
-                            user_search_keyword = st.text_input('Search Books')
-                            
-                            # create search_state to prevent table resetting when clicked
-                            if 'search_state' not in st.session_state:
-                                st.session_state.search_state = False
 
-                            if st.button('Search Book') or st.session_state.search_state: 
-                                st.session_state.search_state = True
-
-                                st.info('search book based on title')
-                                # retrieve table based on user search word
-                                book_data_user_search_view = lpf.book_data_user_summary_view_formatting(
-                                    lsf.read_query_as_pd(
-                                        lsf.db_connection, lsf.search_book_user(user_search_keyword)
-                                        )
-                                ) 
-                                # present table as AgGrid table to allow book selection using checkbox
-                                book_userview_aggrid = lpf.df_to_aggrid(pd.DataFrame(book_data_user_search_view))
+                            # check if books table is empty 
+                            if lsf.check_table_empty(db_connection, lsf.books_table) == 0:
+                                st.info('No books collection yet')
 
                             else:
-                                # present table with book title, category and numbers of available stock
-                                book_data_user_view = lpf.book_data_user_summary_view_formatting(
-                                    lsf.read_query_as_pd(
-                                        lsf.db_connection, lsf.presenting_books_table_for_user_summary_user_string
-                                        )
-                                )
 
-                                book_userview_aggrid = lpf.df_to_aggrid(pd.DataFrame(book_data_user_view))
-                                                                    
-                            if st.button("Request to borrow"):
-                                # select 1 book of the selected book_title, change the book_status to be 'requested to be borrowed'
-                                book_request_to_borrow = lpf.select_book_to_borrow_return(book_userview_aggrid, column_name = 'Book Title') 
-                                lsf.execute_query(
-                                    lsf.db_connection,
-                                    lsf.request_to_borrow(
-                                        book_request_to_borrow[0], 
-                                        username),
-                                    lsf.success_request_to_borrow_string
+                                # catch search keyword
+                                user_search_keyword = st.text_input('Search Books')
+                                
+                                # create search_state to prevent table resetting when clicked
+                                if 'search_state' not in st.session_state:
+                                    st.session_state.search_state = False
+
+                                if st.button('Search Book') or st.session_state.search_state: 
+                                    st.session_state.search_state = True
+
+                                    st.info('search book based on title')
+                                    # retrieve table based on user search word
+                                    book_data_user_search_view = lpf.book_data_user_summary_view_formatting(
+                                        lsf.read_query_as_pd(
+                                            db_connection, lsf.search_book_user(user_search_keyword)
+                                            )
+                                    ) 
+                                    # present table as AgGrid table to allow book selection using checkbox
+                                    book_userview_aggrid = lpf.df_to_aggrid(pd.DataFrame(book_data_user_search_view))
+
+                                else:
+                                    # present table with book title, category and numbers of available stock
+                                    book_data_user_view = lpf.book_data_user_summary_view_formatting(
+                                        lsf.read_query_as_pd(
+                                            db_connection, lsf.presenting_books_table_for_user_summary_user_string
+                                            )
                                     )
+
+                                    book_userview_aggrid = lpf.df_to_aggrid(pd.DataFrame(book_data_user_view))
+                                                                        
+                                if st.button("Request to borrow"):
+                                    # select 1 book of the selected book_title, change the book_status to be 'requested to be borrowed'
+                                    book_request_to_borrow = lpf.select_book_to_borrow_return(book_userview_aggrid, column_name = 'Book Title') 
+                                    lsf.execute_query(
+                                        db_connection,
+                                        lsf.request_to_borrow(
+                                            book_request_to_borrow[0], 
+                                            username),
+                                        lsf.success_request_to_borrow_string
+                                        )
 
                         with tab2:
                             try:
                                 # select from books_table where borrowed by user, status borrowed
                                 borrowed_book_data_user_view = lpf.detail_book_data_formatting(
                                     lsf.read_query_as_pd(
-                                        lsf.db_connection, lsf.presenting_borrowed_book_table_for_user_string(username)
+                                        db_connection, lsf.presenting_borrowed_book_table_for_user_string(username)
                                     )
                                 )
 
@@ -319,7 +350,7 @@ def main():
                                     # select book to be return, change the book_status to be 'to be approved for return'
                                     book_request_to_return = lpf.select_book_to_borrow_return(borrowed_book_data_user_view_aggrid, column_name='Book ID') 
                                     lsf.execute_query(
-                                        lsf.db_connection,
+                                        db_connection,
                                         lsf.request_to_return(
                                             book_request_to_return[0], 
                                             username),
@@ -338,7 +369,7 @@ def main():
                             if st.button("Update profile"):
                                 # update column password and or address from users_table where user_name = username
                                 lsf.execute_query(
-                                    lsf.db_connection,
+                                    db_connection,
                                     lsf.updating_user_profile_string(
                                         username, 
                                         loggedin_password, 
@@ -349,7 +380,7 @@ def main():
 
                             profile_data = lpf.user_data_formatting(
                                 lsf.read_query_as_pd(
-                                    lsf.db_connection, lsf.retrieve_user_data(username)
+                                    db_connection, lsf.retrieve_user_data(username)
                                 )
                             )
                             
@@ -374,7 +405,7 @@ def main():
             if new_user != "admin":
                 # compare if username already exists in the table
                 check_user_name_from_users_table = lsf.read_query_as_pd(
-                                lsf.db_connection, lsf.check_user_name(new_user)    
+                                db_connection, lsf.check_user_name(new_user)    
                             )
                 # if username does not exists
                 if check_user_name_from_users_table.empty and new_user_by_admin != 'admin':
@@ -383,7 +414,7 @@ def main():
                     if len(new_password) and len(new_user_dob) > 0:
                         # update users_table with new user
                         lsf.execute_query(
-                            lsf.db_connection,
+                            db_connection,
                             lsf.inserting_new_user_string(
                                 new_user,
                                 new_user_dob,
@@ -407,50 +438,44 @@ def main():
         st.subheader('Browse as a Guest')
         st.success("You can browse our collection as a guest")
 
-        # similiar process with user browse collection functions above, without the book selection checkbox
-        guest_search_keyword = st.text_input('Search Books')
-                        
-        if st.button('Search Book'):
-            
-
-            st.info('search book based on title')
-            book_data_guest_search_view = lpf.book_data_user_summary_view_formatting(
-                lsf.read_query_as_pd(
-                    lsf.db_connection, lsf.search_book_user(guest_search_keyword)
-                    )
-            ) 
-            st.dataframe(book_data_guest_search_view)
-            
+        # check if books table is empty 
+        if lsf.check_table_empty(db_connection, lsf.books_table) == 0:
+            st.info('No books collection yet')
 
         else:
-            
-            book_data_guest_search_view = lpf.book_data_user_summary_view_formatting(
-                lsf.read_query_as_pd(
-                    lsf.db_connection, lsf.presenting_books_table_for_user_summary_user_string
-                    )
-            )
 
-            st.dataframe(book_data_guest_search_view)
-            
+            # similiar process with user browse collection functions above, without the book selection checkbox
+            guest_search_keyword = st.text_input('Search Books')
+                            
+            if st.button('Search Book'):
+                
+
+                st.info('search book based on title')
+                book_data_guest_search_view = lpf.book_data_user_summary_view_formatting(
+                    lsf.read_query_as_pd(
+                        db_connection, lsf.search_book_user(guest_search_keyword)
+                        )
+                ) 
+                st.dataframe(book_data_guest_search_view)
+                
+
+            else:
+                
+                book_data_guest_search_view = lpf.book_data_user_summary_view_formatting(
+                    lsf.read_query_as_pd(
+                        db_connection, lsf.presenting_books_table_for_user_summary_user_string
+                        )
+                )
+
+                st.dataframe(book_data_guest_search_view)
+                
 
     with st.sidebar:
-        col1, col2 = st.columns(2)
-
-        with col1:
-        # st.info(server_connection)
-            if server_connection.is_connected():
-                st.info('Connected to Server')
-            else:
-                st.warning('No server connection')
-        
-        with col2:
-            if lsf.db_connection.is_connected():
-                st.info('Connected to Database')
-            else:
-                st.warning('No Database connection')
-
-
-
+        # Check if database connection is active
+        if db_connection.is_connected():
+            st.info('Connected to Database')
+        else:
+            st.warning('No Database connection')
         
         
 

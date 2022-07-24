@@ -13,7 +13,6 @@ host = "localhost"
 db = "lms_project"
 
 # table name
-admin_table = "admin_table"
 users_table = 'users_table'
 books_table = 'books_table'
 
@@ -27,7 +26,7 @@ success_updated_profile_string = "Updated profile saved"
 success_signup_string = "SignUp Success, use login with your username and password"
 
 # Server connection function
-@st.cache(allow_output_mutation=True, suppress_st_warning=True)
+@st.cache(allow_output_mutation=True, suppress_st_warning=True) # save connection state during user session, preventing reruning connection creation
 def create_server_connection(host_name, user_name, user_password):
     connection = None
     
@@ -43,7 +42,7 @@ def create_server_connection(host_name, user_name, user_password):
     return connection
 
 # Create database function
-@st.cache(allow_output_mutation=True)
+@st.cache(allow_output_mutation=True)  # preventing reruning database creation during user session
 def create_database(connection, query):
     cursor = connection.cursor()
     try:
@@ -54,7 +53,7 @@ def create_database(connection, query):
 
 
 # database connection function
-@st.cache(allow_output_mutation=True, suppress_st_warning=True)
+@st.cache(allow_output_mutation=True, suppress_st_warning=True) # preventing reruning database connection creation during user session
 def create_db_connection(host_name, user_name, user_password, db_name):
     connection = None
     try:
@@ -67,7 +66,6 @@ def create_db_connection(host_name, user_name, user_password, db_name):
     except Error as error:
         st.error(f"Error: {error}")
     return connection
-
 
 
 # Query Function for  Create, Update, Delete, Insert table and data
@@ -103,26 +101,16 @@ def read_query_as_object(connection, query):
         st.error(f"Error: {error}")
 
 
-# create database connection
-
-
-db_connection = create_db_connection(
-    host_name = host, 
-    user_name = user, 
-    user_password = pw, 
-    db_name = db)
-
-
 # strings to create sql database and tables
 # creating database
 creating_database_string = f'CREATE DATABASE IF NOT EXISTS {db}'
 
 # create admin table (currently not used)
-creating_admin_table_string = (
-    f'CREATE TABLE IF NOT EXISTS '
-    f'{admin_table}'
-    f'(admin_name VARCHAR(50), admin_password VARCHAR(64))'
-)
+# creating_admin_table_string = (
+#     f'CREATE TABLE IF NOT EXISTS '
+#     f'{admin_table}'
+#     f'(admin_name VARCHAR(50), admin_password VARCHAR(64))'
+# )
 
 # create user table
 creating_users_table_string = (
@@ -152,6 +140,37 @@ creating_books_table_string = (
 )
 
 
+@st.cache(allow_output_mutation=True, suppress_st_warning=True)
+def initial_setup(host_name, user_name, user_password, db_name):
+    # create server connection
+    server_connection = create_server_connection(host, user, pw)
+
+    # create database if not exists
+    execute_query(server_connection, creating_database_string, success_create_database_string) # create database if not exists
+    
+    # create DB connection
+    db_connection = create_db_connection(
+        host_name = host, 
+        user_name = user, 
+        user_password = pw, 
+        db_name = db)
+ 
+    # create table if not exist
+    execute_query(db_connection, creating_users_table_string, success_create_database_string) # create user table if not exists
+    execute_query(db_connection, creating_books_table_string, success_create_database_string) # create books table if not exists
+    
+    return db_connection
+
+# check if table is empty 
+def check_table_empty(db_connection, table):
+    table_empty_status = read_query_as_pd(
+        db_connection, 
+        f'SELECT EXISTS (SELECT 1 FROM {table})')
+
+    return table_empty_status.iloc[0][0]
+
+
+
 # function to insert new book to database by admin
 def insert_new_book(new_book_title, new_book_category, new_book_stock, db_connection):
     sql_string = (
@@ -162,7 +181,6 @@ def insert_new_book(new_book_title, new_book_category, new_book_stock, db_connec
     for i in range(0, int(new_book_stock)):
         execute_query(db_connection, sql_string)
 
-    
 
 # books status options for further data handling (if any)
 books_status = ('available', 'borrowed', 'requested to be borrowed', 'to be approved for return')
