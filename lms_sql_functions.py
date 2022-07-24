@@ -1,7 +1,8 @@
+from jinja2 import TemplateRuntimeError
 import mysql.connector 
 from mysql.connector import Error
 import pandas as pd
-
+import streamlit as st
 import lms_python_functions as lpf
 
 
@@ -16,8 +17,17 @@ admin_table = "admin_table"
 users_table = 'users_table'
 books_table = 'books_table'
 
+# query execution success message strings
+success_create_database_string = 'Database/table created or exists'
+success_user_request_approved_string = "User's request approved"
+success_new_user_added_byadmin_string = "new user added"
+success_request_to_borrow_string = "Request submitted, awaiting for admin approval"
+success_request_to_return_string = "Request submitted, awaiting for admin confirmation"
+success_updated_profile_string = "Updated profile saved"
+success_signup_string = "SignUp Success, use login with your username and password"
 
-# Fungsi Koneksi ke Server
+# Server connection function
+@st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def create_server_connection(host_name, user_name, user_password):
     connection = None
     
@@ -27,12 +37,13 @@ def create_server_connection(host_name, user_name, user_password):
             user=user_name,
             password=user_password
         )
-        print("MySQL server connection is established")
+        st.info("MySQL server connection is established")
     except Error as error:
-        print(f"Error: {error}")
+        st.error(f"Error: {error}")
     return connection
 
-# Fungsi membuat database
+# Create database function
+@st.cache(allow_output_mutation=True)
 def create_database(connection, query):
     cursor = connection.cursor()
     try:
@@ -42,7 +53,8 @@ def create_database(connection, query):
         print(f"Error: {error}")
 
 
-# Fungsi Koneksi ke database
+# database connection function
+@st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def create_db_connection(host_name, user_name, user_password, db_name):
     connection = None
     try:
@@ -51,22 +63,24 @@ def create_db_connection(host_name, user_name, user_password, db_name):
             user=user_name,
             passwd=user_password,
             database=db_name)
-        print("MySQL database connection is established")
+        st.info("database connection is established")
     except Error as error:
-        print(f"Error: {error}")
+        st.error(f"Error: {error}")
     return connection
 
-# Fungsi untuk Eksekusi Query, Create, Update, Delete, Insert table and data
-def execute_query(connection, query):
+
+
+# Query Function for  Create, Update, Delete, Insert table and data
+def execute_query(connection, query, success_message = 'Query executed'):
     cursor = connection.cursor()
     try:
         cursor.execute(query)
         connection.commit()
-        print("Query executed")
+        st.success(success_message)
     except Error as error:
-        print(f"Error: {error}")
+        st.error(f"Error: {error}")
 
-# FUngsi Read Query
+# Query function to read and return table from database as pandas dataframe
 def read_query_as_pd(connection, query):
     cursor = connection.cursor()
     result = None
@@ -75,9 +89,9 @@ def read_query_as_pd(connection, query):
         result = cursor.fetchall()
         return pd.DataFrame(result)
     except Error as error:
-        print(f"Error: {error}")
+        st.error(f"Error: {error}")
 
-
+# Query function to read and return object from database as single object
 def read_query_as_object(connection, query):
     cursor = connection.cursor()
     result = None
@@ -86,10 +100,10 @@ def read_query_as_object(connection, query):
         result = cursor.fetchall()
         return result
     except Error as error:
-        print(f"Error: {error}")
+        st.error(f"Error: {error}")
 
 
-# membuat koneksi ke database
+# create database connection
 
 
 db_connection = create_db_connection(
@@ -103,12 +117,14 @@ db_connection = create_db_connection(
 # creating database
 creating_database_string = f'CREATE DATABASE IF NOT EXISTS {db}'
 
+# create admin table (currently not used)
 creating_admin_table_string = (
     f'CREATE TABLE IF NOT EXISTS '
     f'{admin_table}'
     f'(admin_name VARCHAR(50), admin_password VARCHAR(64))'
 )
 
+# create user table
 creating_users_table_string = (
     f'CREATE TABLE IF NOT EXISTS '
     f'{users_table}'
@@ -121,6 +137,7 @@ creating_users_table_string = (
 
 )
 
+# create book table
 creating_books_table_string = (
     f'CREATE TABLE IF NOT EXISTS '
     f'{books_table}'
@@ -198,7 +215,12 @@ def presenting_borrowed_book_table_for_user_string(username):
         f' OR book_status = \'{books_status[3]}\')' 
     )
 
-
+# check if user_name already been used
+def check_user_name(new_user):
+    return(
+        f'SELECT user_name FROM users_table '
+        f'WHERE user_name = \'{new_user}\''
+    )
 
 # add new user
 def inserting_new_user_string(new_user, new_user_dob, new_user_occupation, new_user_address, new_user_password):
@@ -251,7 +273,7 @@ def approve_to_borrow(book_id):
         f'WHERE book_id = \"{book_id}\"'
     )
 
-
+# update table for approving return request by admin
 def approve_to_return(book_id):
     return (
         f'UPDATE books_table '

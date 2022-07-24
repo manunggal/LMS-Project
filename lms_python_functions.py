@@ -21,6 +21,7 @@ def detail_book_data_formatting(book_data):
     }, inplace = True)
     return book_data
 
+# present stock summary table for admin view
 def book_data_admin_summary_view_formatting(book_data_admin_summary_view):
     book_data_admin_summary_view.rename(columns = {
         0 : 'Book Title',
@@ -42,6 +43,7 @@ def book_data_admin_summary_view_formatting(book_data_admin_summary_view):
 
     return book_data_admin_summary_view
 
+# present available stock summary table for user and guest view
 def book_data_user_summary_view_formatting(book_data_user_summary_view):
     book_data_user_summary_view.rename(columns = {
         0 : 'Book Title',
@@ -78,6 +80,27 @@ def check_password(user, hashed_password):
         lsf.db_connection, 
         lsf.select_password_from_table())
     return saved_password == hashed_password
+
+# check date of birth format (YYYY-MM-DD)
+def check_dob_format(new_dob):
+    if len(new_dob) != 10:
+        raise Exception('Date of Birth format should be YYYY-MM-DD')
+    
+    try:
+        # check year within mysql accepted year range (1000-9999)
+        year_check = 1000 <= int(new_dob[0:4]) <= 9999
+        # month check
+        month_check = 1 <= int(new_dob[5:7]) <= 12
+        # date check
+        date_check = 1 <= int(new_dob[8:10]) <= 31
+        # dash check
+        dash_check = (new_dob[4] == '-' and new_dob[7] == '-')
+
+        return year_check*month_check*date_check*dash_check
+    
+    except:
+        print('Date of Birth should be in YYYY-MM-DD format')
+
 
 # convert pd.dataframe to aggrid
 def df_to_aggrid(df):
