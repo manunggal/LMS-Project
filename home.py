@@ -323,14 +323,22 @@ def main():
                                                                         
                                 if st.button("Request to borrow"):
                                     # select 1 book of the selected book_title, change the book_status to be 'requested to be borrowed'
+                                    book_request_to_borrow_stock = lpf.select_book_to_borrow_return(book_userview_aggrid, column_name = 'Available Stock') 
                                     book_request_to_borrow = lpf.select_book_to_borrow_return(book_userview_aggrid, column_name = 'Book Title') 
-                                    lsf.execute_query(
-                                        db_connection,
-                                        lsf.request_to_borrow(
-                                            book_request_to_borrow[0], 
-                                            username),
-                                        lsf.success_request_to_borrow_string
-                                        )
+                                    
+                                    # request to borrow is processed if available stock >= 1
+                                    if book_request_to_borrow_stock.iloc[0] >= 1:
+                                    
+                                        lsf.execute_query(
+                                            db_connection,
+                                            lsf.request_to_borrow(
+                                                book_request_to_borrow[0], 
+                                                username),
+                                            lsf.success_request_to_borrow_string
+                                            )
+                                    
+                                    else:
+                                        st.warning('The selected book is not available')
 
                         with tab2:
                             try:
