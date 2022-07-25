@@ -13,6 +13,54 @@ This is a fourth assignment of Python class from data science course at [Pacmann
 The required package is listed in ```requirements.txt```. Along with the general best practice of setting up local environment, those packages need to be installed prior to the utilization of this app. The virtual environment or ```venv``` can be set up within your local working directory using  ```python -m venv LMS-Project``` command. The virtual environment will be created and contained within a directory called ```LMS-Project```. Afterwards it can be activated via ```./Scripts/activate```. ```pip install``` command can be used to install the required packages. ```mysql-connector-python``` is used to handle the connection and operation of the MySQL database from python, whereas the creation of the UI aspect is managed using ```streamlit``` a powerful framework to create machine learning and data science app. you can learn more about it at  [Streamlit](https://streamlit.io/). A Streamlit extension called ```streamlit-aggrid``` helps to create an interactive table. in this app, it is used to create a table book where user can select a book to borrow. Finally ```pandas``` is used to handle the tables coming out of the MySQL database. The python functions that were created for this project are saved in two separate files. `lms_python_functions.py` (imported as `lpf` in the app) contains functions related to data wrangling in python while `lms_sql_functions.py` (imported as `lsf` in the app) has functions that send queries to MySQL database.
 
 
+## Getting Started
+Having all the required packages installed, the database parameter in `lms_sql_functions.py` should be adapted to each local installation setting.
+
+``` Python
+# database parameters
+user = 'root'
+pw = "******"
+host = "localhost"
+db = "lms_project"
+```
+
+To run this app execute `streamlit run home.py` within the virtual environment that have been created. The app will first run `lsf.initial_setup` function. It does the following:
+- Create MySQL server connection 
+- Create database if not exists 
+- Create database connection
+- Create users_table and books_table if not exists
+This function also returns `db_connection` to be used as database connector in reading query result and sending query to the database tables. 
+Afterwards the app should be ready. The features of the app will be explained in the following sections.
+
+
+As for the main functions of the app, in `lms_sql_functions.py` there are two functions that handles the reading and updating the database, and used a lot throughtout the app, which are:
+- `lsf.execute_query`
+  This function is utilized to create and update the tables 
+- `lsf.read_query_as_pd` 
+  This function return table reading as Pandas dataframe
+Both of these functions take strings input as MySQL queries and `db_connection`. 
+For example, a function to present books that are requested to be borrowed.
+
+``` Python
+  book_requested_to_borrow_admin_view = lpf.detail_book_data_formatting(
+      lsf.read_query_as_pd(
+          db_connection, lsf.presenting_books_to_be_borrowed_for_admin_string
+      )
+  )
+
+```
+The `lsf.read_query_as_pd` return the query result as a Pandas dataframe, it takes input of `lsf.presenting_books_to_be_borrowed_for_admin_string` who provides the query strings as follow:
+
+``` Python
+# present borrow book request table
+presenting_books_to_be_borrowed_for_admin_string = (
+    f'SELECT * FROM {books_table} '
+    f'WHERE book_status = \'{books_status[2]}\' '
+)
+
+```
+
+Meanwhile The `lpf.detail_book_data_formatting` provides the datarame column name formatting for table presentation.
 
 
 ## How it works
