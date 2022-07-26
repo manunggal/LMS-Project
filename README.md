@@ -10,7 +10,9 @@ This is a fourth assignment of Python class from data science course at [Pacmann
 
 
 ## Requirements
-The required package is listed in ```requirements.txt```. Along with the general best practice of setting up local environment, those packages need to be installed prior to the utilization of this app. The virtual environment or ```venv``` can be set up within your local working directory using  ```python -m venv LMS-Project``` command. The virtual environment will be created and contained within a directory called ```LMS-Project```. Afterwards it can be activated via ```./Scripts/activate```. ```pip install``` command can be used to install the required packages. ```mysql-connector-python``` is used to handle the connection and operation of the MySQL database from python, whereas the creation of the UI aspect is managed using ```streamlit``` a powerful framework to create machine learning and data science app. you can learn more about it at  [Streamlit](https://streamlit.io/). A Streamlit extension called ```streamlit-aggrid``` helps to create an interactive table. in this app, it is used to create a table book where user can select a book to borrow. Finally ```pandas``` is used to handle the tables coming out of the MySQL database. The python functions that were created for this project are saved in two separate files. `lms_python_functions.py` (imported as `lpf` in the app) contains functions related to data wrangling in python while `lms_sql_functions.py` (imported as `lsf` in the app) has functions that send queries to MySQL database.
+The required package is listed in ```requirements.txt```. Along with the general best practice of setting up local environment, those packages need to be installed prior to the utilization of this app. The virtual environment or ```venv``` can be set up within your local working directory using  ```python -m venv LMS-Project``` command. The virtual environment will be created and contained within a directory called ```LMS-Project```. Afterwards it can be activated via ```./Scripts/activate```. ```pip install``` command can be used to install the required packages. 
+
+```mysql-connector-python``` is used to handle the connection and operation of the MySQL database from python, whereas the creation of the UI aspect is managed using ```streamlit``` a powerful framework to create machine learning and data science app. you can learn more about it at  [Streamlit](https://streamlit.io/). A Streamlit extension called ```streamlit-aggrid``` helps to create an interactive table. in this app, it is used to create a table book where user can select a book to borrow. Finally ```pandas``` is used to handle the tables coming out of the MySQL database. The python functions that were created for this project are saved in two separate files. `lms_python_functions.py` (imported as `lpf` in the app) contains functions related to data wrangling in python while `lms_sql_functions.py` (imported as `lsf` in the app) has functions that send queries to MySQL database.
 
 
 ## Getting Started
@@ -204,7 +206,7 @@ Once the user is logged-in, one the user can browse for collection. The table pr
 ![user_browse_collection](https://github.com/manunggal/LMS-Project/blob/master/readme%20pics/user_browse_collection.jpg)
 
 When the user decide to borrow a book, the user can select it via a checkbox at the left side of the table. This table is built using `lpf.df_to_aggrid` that convert pandas dataframe to aggrid dataframe, in order to facilitate book selection. After clicking `Request to Borrow`, 
-```
+``` Python
  book_request_to_borrow = lpf.select_book_to_borrow_return(book_userview_aggrid, column_name = 'Book Title') 
                             lsf.execute_query(
                                 lsf.db_connection,
