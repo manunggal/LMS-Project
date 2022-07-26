@@ -126,7 +126,7 @@ will generate the following tab
 The input of `new_book_title`, etc will be executed as MySQL query using `lsf.insert_new_book` function when the `st.button("Add Book(s) in Library")` is clicked. Within this block of code, the number of books to be added will be based  on `new_book_stock` input. For each new book, a `book_id` number is generated automatically using auto increment feature that was set-up during MySQL table creation.
 
 #### Book Borrow/Return Request
-For both book borrwing and returing pages, the code will be quite similiar
+For both book borrowing and returing pages, the code will be quite similiar
 ``` Python
  with tab2: # Book Borrow/Return Request
   # consist of two sub-tabs:
@@ -168,7 +168,7 @@ For both book borrwing and returing pages, the code will be quite similiar
 ```
 
 In the event where there are borrow or return requests,`lsf.presenting_books_to_be_borrowed_for_admin_string` will retrieve the table from database and present it to the admin, where function `lpf.detail_book_data_formatting` will format the table's column names. Meanwhile function `df_to_aggrid` from `lms_python_functions.py` will convert `pandas` `dataframe` to `Aggrid` `dataframe` in order to create interactive table where the admin can select which request to be approved using a checkbox.
-The handling of this request is executed after admin click the `approve` button from `if st.button("Approve"):` code where `book title` is captured from the selected row using `lpf.select_book_to_borrow_return` and used as a query to be sent to the database using `lsf.approve_to_borrow` function. 
+The handling of this request is executed after admin click the `approve` button from `if st.button("Approve"):` code where `book title` is captured from the selected row using `lpf.select_book_to_borrow_return` and used as a query to be sent to the database using `lsf.approve_to_borrow` function. This function also update `expected_return_date` column with SQL function of `DATE_ADD(current_date(), INTERVAL 14 DAY)` who returns 14 days after the current date.   
 The same process will also happens for the borrow request tab. 
 
 
