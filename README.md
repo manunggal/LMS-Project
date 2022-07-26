@@ -31,7 +31,7 @@ To run this app execute `streamlit run home.py` within the virtual environment t
 - Create users_table and books_table if not exists
 This function also returns `db_connection` to be used as database connector in reading query result and sending query to the database tables. 
 Afterwards the app should be ready. The features of the app will be explained in the following sections.
-
+![Welcome Page](https://github.com/manunggal/LMS-Project/blob/master/readme%20pics/welcome%20page.jpg)
 
 As for the main functions of the app, in `lms_sql_functions.py` there are two functions that handles the reading and updating the database, and used a lot throughtout the app, which are:
 - `lsf.execute_query`
@@ -74,9 +74,11 @@ The app is divided into three section, which are:
 
 ### Admin Section
 The sidebar is where user log the information in accordance with their respective role, it accepts two inputs which are `username` and `password`.
+
 ![Admin Login](https://github.com/manunggal/LMS-Project/blob/master/readme%20pics/admin_login.jpg)
+
 In general the user authentification aspect of this app is not part of the assignment, hence in the current version the authentification of admin is simplified as:
-```
+``` Python
 if st.sidebar.checkbox("Login"):
             # Admin Section
             if username == "admin":
@@ -88,8 +90,8 @@ if st.sidebar.checkbox("Login"):
 ```
 When `username` input is 'admin' and `password` input is '1234', the app will present the admin page.
 
-admin picture. The following code delivers the admin page
-```
+The following code delivers the admin page:
+``` Python
 # Open admin home page
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "Register New Book", 
@@ -98,35 +100,72 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "Add New user",
     "Users List"])
 ```
- It consists of five tabs, each tab will open a new page corresponding to the respective tab name.
+It consists of five tabs, each tab will open a new page corresponding to the respective tab name.
  
 #### Register New Book
 In this tab, the admin can add new book to the collection. the following code from `home.py` 
-`with tab1: # Register New Book
-                        new_book_title = st.text_input("Book Title")
-                        new_book_category = st.text_input("Book Category")
-                        new_book_stock = st.text_input("Numbers of Books")
 
-                        if st.button("Add Book(s) in Library"):
-                            lsf.insert_new_book(new_book_title, new_book_category, new_book_stock, lsf.db_connection)
+``` Python
+with tab1: # Register New Book
+  new_book_title = st.text_input("Book Title")
+  new_book_category = st.text_input("Book Category")
+  new_book_stock = st.text_input("Numbers of Books")
 
-                            st.success("Book(s) added in Collection")`
+  if st.button("Add Book(s) in Library"):
+      lsf.insert_new_book(new_book_title, new_book_category, new_book_stock, lsf.db_connection)
+
+      st.success("Book(s) added in Collection")
+```
 
 will generate the following tab
+
 ![register new book](https://github.com/manunggal/LMS-Project/blob/1daccf9b0a8e18dc77ca9f445621ab599ec3f6c9/readme%20pics/register_new_book_admin.jpg)
 
 The input of `new_book_title`, etc will be executed as MySQL query using `lsf.insert_new_book` function when the `st.button("Add Book(s) in Library")` is clicked. Within this block of code, the number of books to be added will be based  on `new_book_stock` input. For each new book, a `book_id` number is generated automatically using auto increment feature that was set-up during MySQL table creation.
 
 #### Book Borrow/Return Request
-Both books borrow or return tab will display the following message when there are no such request from library users.
-gambar st.info borrow request
+For both book borrwing and returing pages, the code will be quite similiar
+``` Python
+ with tab2: # Book Borrow/Return Request
+  # consist of two sub-tabs:
+  tab2_1, tab2_2 = st.tabs([
+      "Request to Borrow",
+      "Request to Return"
+  ])
+  
+  with tab2_1: # for approving books borrowing request
+      
+      # check if books table is empty 
+      if lsf.check_table_empty(db_connection, lsf.books_table) == 0:
+          st.info('No books collection yet')
 
+      else:
 
-When there are such requests, a function:
+          try:
+              # retrieve table from books_table, where book_status = 'requested to be borrowed'
+              book_requested_to_borrow_admin_view = lpf.detail_book_data_formatting(
+                  lsf.read_query_as_pd(
+                      db_connection, lsf.presenting_books_to_be_borrowed_for_admin_string
+                  )
+              )
+              # presents the result as AgGrid table in order to enable checkbox selection 
+              book_requested_to_borrow_admin_view_aggrid = lpf.df_to_aggrid(pd.DataFrame(book_requested_to_borrow_admin_view))
+      
 
+              if st.button("Approve"):
+                  # catch selected row, take book_id, search in book_table, change book_status to 'borrowed'
+                  book_approve_to_be_borrowed = lpf.select_book_to_borrow_return(book_requested_to_borrow_admin_view_aggrid, column_name='Book ID')
+                  lsf.execute_query(
+                      db_connection,
+                      lsf.approve_to_borrow(book_approve_to_be_borrowed[0]),
+                      lsf.success_user_request_approved_string
+                  )
+                                          
+          except:
+              st.info("No borrowing request from users")
+```
 
-
-from `lms_sql_functions.py` will retrieve the table from database and present it to the admin, where function `detail_book_data_formatting` from `lms_python_functions.py` will format the table's column names. Meanwhile function `df_to_aggrid` from `lms_python_functions.py` will convert `pandas` `dataframe` to `Aggrid` `dataframe` in order to create interactive table where the admin can select which request to be approved using a checkbox.
+In the event where there are borrow or return requests,`lsf.presenting_books_to_be_borrowed_for_admin_string` will retrieve the table from database and present it to the admin, where function `lpf.detail_book_data_formatting` will format the table's column names. Meanwhile function `df_to_aggrid` from `lms_python_functions.py` will convert `pandas` `dataframe` to `Aggrid` `dataframe` in order to create interactive table where the admin can select which request to be approved using a checkbox.
 The handling of this request is executed after admin click the `approve` button from `if st.button("Approve"):` code where `book title` is captured from the selected row using `lpf.select_book_to_borrow_return` and used as a query to be sent to the database using `lsf.approve_to_borrow` function. 
 The same process will also happens for the borrow request tab. 
 
@@ -137,6 +176,8 @@ There are two tabs within `Book Collection` tab, which are:
   
     The collection summary provides admin with available stock information for each book title. `lsf.presenting_books_to_be_returned_for_admin_string` function is used to send the query and retrieve the result. 
     The example: 
+  ![collection summary](https://github.com/manunggal/LMS-Project/blob/master/readme%20pics/collection_summary.jpg)
+
     The table shows numbers of available book, numbers of borrow, total stock, etc
 
 - Books Details Table
@@ -145,19 +186,23 @@ There are two tabs within `Book Collection` tab, which are:
 
 
 
-
-
 #### Add New User
 Similiar with adding new book, admin can add new user via `Add New User` tab. the provided information will be assembled as MySQL query string using `lsf.inserting_new_user_string` after clicking `Add new user` button. As general practice of not saving user password as a plain text, the newly created password is hashed using `lpf.hash_password` function. This function use `hashlib.sha3_256()` function from `hashlib`.
+  ![add_new_user](https://github.com/manunggal/LMS-Project/blob/master/readme%20pics/add_new_user.jpg)
 
 #### Users List
 This tab will provide a table of detail users information.
 
 ### User Section
-Library user need to provide his/her username and corresponding password  to login. This information is used to check the saved username and password in the database using `lsf.select_password_from_table(username)` function.
+Library user need to provide his/her username and corresponding password to login. This information is used to check the saved username and password in the database using `lsf.select_password_from_table(username)` function.
+
+
 
 #### Browse and Search Collection
 Once the user is logged-in, one the user can browse for collection. The table presented in this section is a simplified version, it only provides book title, book category, and how many books are available. `lsf.presenting_books_table_for_user_summary_user_string` function handle the reading query from the database. The user can also searches books title using book title keyword.  `lsf.search_book_user` handle the search.
+
+![user_browse_collection](https://github.com/manunggal/LMS-Project/blob/master/readme%20pics/user_browse_collection.jpg)
+
 When the user decide to borrow a book, the user can select it via a checkbox at the left side of the table. This table is built using `lpf.df_to_aggrid` that convert pandas dataframe to aggrid dataframe, in order to facilitate book selection. After clicking `Request to Borrow`, 
 ```
  book_request_to_borrow = lpf.select_book_to_borrow_return(book_userview_aggrid, column_name = 'Book Title') 
@@ -173,10 +218,44 @@ this block of codes handle the request. `lsf.request_to_borrow` convert the `ava
 
 #### Borrowed Books
 Once the user's borrow request approved by the admin, the list of borrowed book will be shown here. `lsf.presenting_borrowed_book_table_for_user_string` filter `books_table` where `book_status` is `borrowed` and `borrowed_by` equal to username.
+![borrowed_user](https://github.com/manunggal/LMS-Project/blob/master/readme%20pics/borrowed_user.jpg)
 
+``` Python
+with tab2:
+  try:
+      # select from books_table where borrowed by user, status borrowed
+      borrowed_book_data_user_view = lpf.detail_book_data_formatting(
+          lsf.read_query_as_pd(
+              db_connection, lsf.presenting_borrowed_book_table_for_user_string(username)
+          )
+      )
+
+
+      borrowed_book_data_user_view_aggrid = lpf.df_to_aggrid(pd.DataFrame(borrowed_book_data_user_view))
+      
+      
+      # submit book return request
+      if st.button("Return book(s)"):
+          # select book to be return, change the book_status to be 'to be approved for return'
+          book_request_to_return = lpf.select_book_to_borrow_return(borrowed_book_data_user_view_aggrid, column_name='Book ID') 
+          lsf.execute_query(
+              db_connection,
+              lsf.request_to_return(
+                  book_request_to_return[0], 
+                  username),
+              lsf.success_request_to_return_string
+          )
+
+  except:
+      st.info("You haven't borrowed any yet")    
+```
+
+When the user decide to return the book, user can select which book to return using the checkbox, again the checkbox selection is facilitated by `lpf.df_to_aggrid` function. Afterwards click the `Return book(s)` button where `lpf.select_book_to_borrow_return` will return the `book_id` to be used by `lsf.request_to_return` to prepare the MySQL query to be sent to the database.
 
 #### Profile Update
 User can make simple update of its password and address. ` lsf.updating_user_profile_string` handles the update of `users_table` in the database and `lsf.retrieve_user_data` presents the result by filtering `user_name` from the `users_table`. 
+![update_profile](https://github.com/manunggal/LMS-Project/blob/master/readme%20pics/user_update_profile.jpg)
+
 
 ### SignUp Section
 Besides the admin, new user can signup itself using signup section. The functions are similiar with the ones used above.
